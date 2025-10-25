@@ -1,18 +1,28 @@
-// API Gateway URL
-const apiUrl = "https://335hu2mui3.execute-api.us-east-1.amazonaws.com";
+// --------------------
+// 1️⃣ API Gateway URL
+// --------------------
+const apiUrl = "https://335hu2mui3.execute-api.us-east-1.amazonaws.com/dev/recommend"; // <-- Production endpoint
 
-// Function to get recommendation from API
+// --------------------
+// 2️⃣ Function to call Lambda API
+// --------------------
 async function getRecommendation(data) {
     const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     });
+
     const result = await response.json();
-    return result.recommendation;
+    return {
+        recommendation: result.recommendation,
+        explanation: result.explanation
+    };
 }
 
-// Form validation constants
+// --------------------
+// 3️⃣ Validation rules
+// --------------------
 const VALIDATION_RULES = {
     ph: { min: 0, max: 14 },
     n: { min: 0, max: 1000 },
@@ -23,7 +33,9 @@ const VALIDATION_RULES = {
     humidity: { min: 0, max: 100 }
 };
 
-// Input validation function
+// --------------------
+// 4️⃣ Input validation
+// --------------------
 function validateInput(input, rules) {
     const value = parseFloat(input.value);
     if (rules[input.name]) {
@@ -37,12 +49,14 @@ function validateInput(input, rules) {
     return true;
 }
 
-// Add input event listeners for real-time validation
+// Add real-time validation
 document.querySelectorAll('input[type="number"]').forEach(input => {
     input.addEventListener('input', () => validateInput(input, VALIDATION_RULES));
 });
 
-// Form submission handler
+// --------------------
+// 5️⃣ Form submission
+// --------------------
 document.getElementById('cropForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -79,14 +93,7 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
     resultElement.style.display = 'none';
 
     try {
-        // Get recommendation using the new function
-        const recommendation = await getRecommendation(data);
-        
-        // Create json object with recommendation
-        const json = {
-            recommendation: recommendation,
-            explanation: `Based on the soil conditions and weather parameters provided, ${recommendation} is recommended for your farm.`
-        };
+        const json = await getRecommendation(data);
         
         // Update result section
         document.getElementById('cropName').innerText = json.recommendation || 'No specific crop recommended';
