@@ -1,5 +1,16 @@
-// Replace with your API Gateway URL
+// API Gateway URL
 const apiUrl = "https://335hu2mui3.execute-api.us-east-1.amazonaws.com";
+
+// Function to get recommendation from API
+async function getRecommendation(data) {
+    const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    return result.recommendation;
+}
 
 // Form validation constants
 const VALIDATION_RULES = {
@@ -68,20 +79,14 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
     resultElement.style.display = 'none';
 
     try {
-        const res = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const json = await res.json();
+        // Get recommendation using the new function
+        const recommendation = await getRecommendation(data);
+        
+        // Create json object with recommendation
+        const json = {
+            recommendation: recommendation,
+            explanation: `Based on the soil conditions and weather parameters provided, ${recommendation} is recommended for your farm.`
+        };
         
         // Update result section
         document.getElementById('cropName').innerText = json.recommendation || 'No specific crop recommended';
