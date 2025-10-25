@@ -1,5 +1,5 @@
 // Replace with your API Gateway URL
-const apiUrl = "https://<YOUR_API_GATEWAY_URL>";
+const apiUrl = "https://335hu2mui3.execute-api.us-east-1.amazonaws.com";
 
 // Form validation constants
 const VALIDATION_RULES = {
