@@ -1,7 +1,7 @@
 // --------------------
 // 1️⃣ API Gateway URL
 // --------------------
-const apiUrl = "https://335hu2mui3.execute-api.us-east-1.amazonaws.com/dev/recommend"; // <-- Production endpoint
+const apiUrl = "https://335hu2mui3.execute-api.us-east-1.amazonaws.com/dev/recommendation"; // <-- Production endpoint
 
 // --------------------
 // 2️⃣ Function to call Lambda API
