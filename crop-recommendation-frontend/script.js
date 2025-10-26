@@ -13,9 +13,30 @@ async function getRecommendation(data) {
         body: JSON.stringify(data)
     });
 
-    // return full parsed JSON so caller can read growing_tips and optimal_conditions
-    const result = await response.json();
-    return result;
+    // API Gateway + Lambda sometimes return the Lambda proxy wrapper:
+    // { statusCode, headers, body: "{...}" }
+    // Parse response text and detect that case so callers always get the inner JSON object.
+    const text = await response.text();
+    let parsed = null;
+    try {
+        parsed = text ? JSON.parse(text) : {};
+    } catch (e) {
+        // Not JSON at all
+        parsed = { __raw: text };
+    }
+
+    // If the parsed object looks like the Lambda proxy wrapper and has a string `body`, parse it.
+    if (parsed && typeof parsed === 'object' && typeof parsed.body === 'string') {
+        try {
+            const inner = JSON.parse(parsed.body);
+            return inner;
+        } catch (e) {
+            // body not JSON; return wrapper so caller can inspect __raw
+            return parsed;
+        }
+    }
+
+    return parsed;
 }
 
 // --------------------
@@ -92,6 +113,22 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
 
     try {
         const json = await getRecommendation(data);
+        console.debug('API response JSON:', json);
+
+        // expose raw JSON for troubleshooting in the UI (creates #apiResponse if not present)
+        try {
+            let dbg = document.getElementById('apiResponse');
+            if (!dbg) {
+                dbg = document.createElement('pre');
+                dbg.id = 'apiResponse';
+                dbg.style.cssText = 'background:#111;color:#0f0;padding:8px;border-radius:6px;max-height:200px;overflow:auto;margin-top:12px;font-size:12px;';
+                const resultContainer = document.getElementById('result');
+                resultContainer.parentNode.insertBefore(dbg, resultContainer.nextSibling);
+            }
+            dbg.textContent = JSON.stringify(json, null, 2);
+        } catch (e) {
+            console.warn('Failed to render debug output', e);
+        }
         
         // Update result section
         document.getElementById('cropName').innerText = json.recommendation || 'No specific crop recommended';
