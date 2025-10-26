@@ -193,11 +193,13 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
                 let nutrientsHtml = '';
                 const nutrientKeys = Object.keys(nutrients || {});
                 if (nutrientKeys.length) {
-                    nutrientsHtml = '<ul class="nutrient-list">';
+                    nutrientsHtml = '<div class="nutrient-list">';
                     nutrientKeys.forEach(k => {
-                        nutrientsHtml += `<li><strong>${k.replace(/_/g,' ')}</strong>: ${nutrients[k]}</li>`;
+                        const nutrientName = k.replace(/_/g,' ').replace(/([a-z])([A-Z])/g, '$1 $2');
+                        const nutrientValue = nutrients[k];
+                        nutrientsHtml += `<div class="nutrient-item"><span class="nutrient-name">${nutrientName}:</span><span class="nutrient-value">${nutrientValue}</span></div>`;
                     });
-                    nutrientsHtml += '</ul>';
+                    nutrientsHtml += '</div>';
                 }
 
                 // Try multiple field name variations and pick the first one that has a value

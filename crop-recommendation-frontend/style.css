@@ -733,18 +733,20 @@ input:focus, select:focus {
 
 .details-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
     gap: 1.2rem;
     align-items: start;
 }
 
 .detail-item {
     background: linear-gradient(to bottom, #ffffff, rgba(255,255,255,0.7));
-    padding: 1.2rem;
+    padding: 1.2rem 1.5rem;
     border-radius: 12px;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1.5px solid rgba(126, 217, 87, 0.2);
     position: relative;
@@ -764,7 +766,7 @@ input:focus, select:focus {
 }
 
 .detail-item:hover {
-    transform: translateY(-4px);
+    transform: translateX(8px);
     box-shadow: 0 8px 20px rgba(126, 217, 87, 0.25);
     border-color: var(--primary-color);
 }
@@ -774,16 +776,17 @@ input:focus, select:focus {
 }
 
 .detail-item.full { 
-    grid-column: 1 / -1; 
+    grid-column: 1; 
 }
 
 .detail-item .label {
-    font-size: 0.78rem;
+    font-size: 0.85rem;
     color: #888;
-    margin-bottom: 0.6rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
+    flex: 0 0 auto;
+    min-width: 150px;
 }
 
 .detail-item .value {
@@ -791,28 +794,43 @@ input:focus, select:focus {
     color: var(--text-color);
     font-size: 1.05rem;
     line-height: 1.5;
+    text-align: right;
+    flex: 1;
 }
 
 .nutrient-list {
     list-style: none;
     padding: 0.5rem 0 0 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
-.nutrient-list li {
+.nutrient-item {
     font-size: 0.95rem;
-    margin-bottom: 0.6rem;
-    padding-left: 1.8rem;
+    padding: 0.6rem 0.8rem;
     position: relative;
     color: #333;
+    background: rgba(126, 217, 87, 0.06);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
 }
 
-.nutrient-list li::before {
-    content: "●";
-    position: absolute;
-    left: 0;
+.nutrient-name {
+    font-weight: 600;
     color: var(--primary-color);
-    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.nutrient-value {
+    font-weight: 500;
+    color: #333;
+    text-align: right;
 }
 
 /* Overall match indicator */
