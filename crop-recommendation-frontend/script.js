@@ -201,39 +201,46 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
                 }
 
                 // Try multiple field name variations and pick the first one that has a value
-                const soilType = details.optimal_soil_type || details.optimalSoilType || details.optimal_soil || details.soil_type || details.soilType || details.soil || details.soilDetails || details.Soil || '—';
-                const pHRange = details.optimal_soil_ph || details.optimal_pH_range || details.optimalPHRange || details.optimal_pH || details.ph_range || details.phRange || details.pH || details.ph || details.pH_range || details.pHRange || '—';
-                const rainReq = details.optimal_rainfall_mm || details.rainfall_requirement || details.rainfallRequirement || details.optimal_rainfall || details.rainfall || details.rain || details.Rainfall || details.rainfall_mm || '—';
-                const tempRange = details.optimal_temperature_c || details.temperature_range || details.temperatureRange || details.optimal_temperature || details.temp_range || details.temperature || details.temp || details.Temperature || details.optimal_temp || '—';
-                const humidityRange = details.optimal_humidity || details.humidity_range || details.humidityRange || details.humidity || details.Humidity || details.optimal_humidity_range || '—';
+                const soilType = details.optimal_soil_type || details.optimalSoilType || details.optimal_soil || details.soil_type || details.soilType || details.soil || details.soilDetails || details.Soil || null;
+                const pHRange = details.optimal_soil_ph || details.optimal_pH_range || details.optimalPHRange || details.optimal_pH || details.ph_range || details.phRange || details.pH || details.ph || details.pH_range || details.pHRange || null;
+                const rainReq = details.optimal_rainfall_mm || details.rainfall_requirement || details.rainfallRequirement || details.optimal_rainfall || details.rainfall || details.rain || details.Rainfall || details.rainfall_mm || null;
+                const tempRange = details.optimal_temperature_c || details.temperature_range || details.temperatureRange || details.optimal_temperature || details.temp_range || details.temperature || details.temp || details.Temperature || details.optimal_temp || null;
+                const humidityRange = details.optimal_humidity || details.humidity_range || details.humidityRange || details.humidity || details.Humidity || details.optimal_humidity_range || null;
 
                 console.log('Extracted values:', { soilType, pHRange, rainReq, tempRange, humidityRange });
 
                 let detailsHtml = `
                     <div class="details-header"><strong>Recommended Growing Conditions</strong></div>
                     <div class="details-grid">
-                        <div class="detail-item"><span class="label">Soil Type</span><span class="value">${soilType}</span></div>
-                        <div class="detail-item"><span class="label">pH Range</span><span class="value">${pHRange}</span></div>
-                        <div class="detail-item"><span class="label">Temperature (°C)</span><span class="value">${tempRange}</span></div>
-                        <div class="detail-item"><span class="label">Humidity (%)</span><span class="value">${humidityRange}</span></div>
-                        <div class="detail-item full"><span class="label">Rainfall (mm)</span><span class="value">${rainReq}</span></div>
-                        ${nutrientsHtml ? `<div class="detail-item full nutrients"><span class="label">Nutrient Requirements</span><span class="value">${nutrientsHtml}</span></div>` : ''}
-                    </div>
                 `;
                 
-                // If details object has other keys not covered above, show them too
+                // Only show fields that have actual values (not null)
+                if (soilType) detailsHtml += `<div class="detail-item"><span class="label">Soil Type</span><span class="value">${soilType}</span></div>`;
+                if (pHRange) detailsHtml += `<div class="detail-item"><span class="label">pH Range</span><span class="value">${pHRange}</span></div>`;
+                if (tempRange) detailsHtml += `<div class="detail-item"><span class="label">Temperature (°C)</span><span class="value">${tempRange}</span></div>`;
+                if (humidityRange) detailsHtml += `<div class="detail-item"><span class="label">Humidity (%)</span><span class="value">${humidityRange}</span></div>`;
+                if (rainReq) detailsHtml += `<div class="detail-item full"><span class="label">Rainfall (mm)</span><span class="value">${rainReq}</span></div>`;
+                if (nutrientsHtml) detailsHtml += `<div class="detail-item full nutrients"><span class="label">Nutrient Requirements</span><span class="value">${nutrientsHtml}</span></div>`;
+                
+                detailsHtml += `</div>`;
+                
+                // If details object has other keys not covered above, show them too (only if they have values)
                 const coveredKeys = ['nutrient_requirements', 'nutrientRequirements', 'nutrients', 'optimal_soil_type', 'optimalSoilType', 'optimal_soil', 'soil_type', 'soilType', 'soil', 'optimal_soil_ph', 'optimal_pH_range', 'optimalPHRange', 'optimal_pH', 'ph_range', 'phRange', 'pH', 'ph', 'optimal_rainfall_mm', 'rainfall_requirement', 'rainfallRequirement', 'rainfall', 'rain', 'optimal_temperature_c', 'temperature_range', 'temperatureRange', 'temperature', 'temp_range', 'temp', 'optimal_humidity', 'humidity_range', 'humidityRange', 'humidity'];
                 const uncoveredKeys = Object.keys(details).filter(k => !coveredKeys.includes(k));
                 
                 if (uncoveredKeys.length > 0) {
-                    detailsHtml += `<div class="details-additional">`;
+                    let hasAdditional = false;
+                    let additionalHtml = '';
                     uncoveredKeys.forEach(key => {
                         const value = details[key];
                         if (value !== null && value !== undefined && value !== '') {
-                            detailsHtml += `<div class="detail-item"><span class="label">${key.replace(/_/g, ' ')}</span><span class="value">${JSON.stringify(value)}</span></div>`;
+                            additionalHtml += `<div class="detail-item"><span class="label">${key.replace(/_/g, ' ')}</span><span class="value">${JSON.stringify(value)}</span></div>`;
+                            hasAdditional = true;
                         }
                     });
-                    detailsHtml += `</div>`;
+                    if (hasAdditional) {
+                        detailsHtml = detailsHtml.replace('</div>', `${additionalHtml}</div>`);
+                    }
                 }
                 
                 detailsEl.innerHTML = detailsHtml;
