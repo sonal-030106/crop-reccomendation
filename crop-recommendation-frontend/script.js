@@ -182,6 +182,9 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
             }
 
             if (details) {
+                console.log('Details object found:', details);
+                console.log('Details keys:', Object.keys(details));
+                
                 // Build nutrient list if present
                 let nutrients = details.nutrient_requirements || details.nutrientRequirements || details.nutrients || {};
                 if (typeof nutrients === 'string') {
@@ -197,21 +200,23 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
                     nutrientsHtml += '</ul>';
                 }
 
-                const soilType = details.optimal_soil_type || details.optimalSoilType || details.optimal_soil || '—';
-                const pHRange = details.optimal_pH_range || details.optimalPHRange || details.optimal_pH || '—';
-                const rainReq = details.rainfall_requirement || details.rainfallRequirement || details.rainfall || '—';
-                const tempRange = details.temperature_range || details.temperatureRange || details.temp_range || '—';
-                const humidityRange = details.humidity_range || details.humidityRange || details.humidity || '—';
+                const soilType = details.optimal_soil_type || details.optimalSoilType || details.optimal_soil || details.soil_type || details.soilType || details.soil || 'Not specified';
+                const pHRange = details.optimal_soil_ph || details.optimal_pH_range || details.optimalPHRange || details.optimal_pH || details.ph_range || details.phRange || details.pH || details.ph || '—';
+                const rainReq = details.optimal_rainfall_mm || details.rainfall_requirement || details.rainfallRequirement || details.rainfall || details.rain || '—';
+                const tempRange = details.optimal_temperature_c || details.temperature_range || details.temperatureRange || details.temp_range || details.temperature || details.temp || '—';
+                const humidityRange = details.optimal_humidity || details.humidity_range || details.humidityRange || details.humidity || 'Not specified';
+
+                console.log('Extracted values:', { soilType, pHRange, rainReq, tempRange, humidityRange });
 
                 detailsEl.innerHTML = `
                     <div class="details-header"><strong>Recommended Growing Conditions</strong></div>
                     <div class="details-grid">
-                        <div class="detail-item"><span class="label">Soil</span><span class="value">${soilType}</span></div>
+                        ${soilType !== 'Not specified' ? `<div class="detail-item"><span class="label">Soil</span><span class="value">${soilType}</span></div>` : ''}
                         <div class="detail-item"><span class="label">pH Range</span><span class="value">${pHRange}</span></div>
-                        <div class="detail-item"><span class="label">Temperature</span><span class="value">${tempRange}</span></div>
-                        <div class="detail-item"><span class="label">Humidity</span><span class="value">${humidityRange}</span></div>
-                        <div class="detail-item full"><span class="label">Rainfall</span><span class="value">${rainReq}</span></div>
-                        <div class="detail-item full nutrients"><span class="label">Nutrient requirements</span><span class="value">${nutrientsHtml}</span></div>
+                        <div class="detail-item"><span class="label">Temperature (°C)</span><span class="value">${tempRange}</span></div>
+                        ${humidityRange !== 'Not specified' ? `<div class="detail-item"><span class="label">Humidity</span><span class="value">${humidityRange}</span></div>` : ''}
+                        <div class="detail-item full"><span class="label">Rainfall (mm)</span><span class="value">${rainReq}</span></div>
+                        ${nutrientsHtml ? `<div class="detail-item full nutrients"><span class="label">Nutrient Requirements</span><span class="value">${nutrientsHtml}</span></div>` : ''}
                     </div>
                 `;
             } else {
@@ -300,6 +305,58 @@ document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         document.querySelector('button[type="submit"]').click();
     }
+});
+
+// Scroll to Top Button Functionality
+const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+window.addEventListener('scroll', () => {
+    if (window.pageYOffset > 300) {
+        scrollTopBtn.classList.add('show');
+    } else {
+        scrollTopBtn.classList.remove('show');
+    }
+});
+
+scrollTopBtn.addEventListener('click', () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+});
+
+// Smooth scroll to form when clicking "Get Recommendation" nav button
+document.querySelectorAll('.nav-button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const formSection = document.querySelector('.recommendation-form');
+        if (formSection) {
+            formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+});
+
+// Add animation when elements come into view
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+// Observe feature cards and form sections
+document.querySelectorAll('.feature-card, .form-section').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+    observer.observe(el);
 });
 
 // --------------------
