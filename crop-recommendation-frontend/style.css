@@ -462,6 +462,63 @@ input:focus {
     padding: 2rem;
 }
 
+/* Details panel (recommended growing conditions) */
+.details-panel {
+    margin-top: 1rem;
+    background: #f7fff5;
+    border: 1px solid rgba(0,200,83,0.08);
+    padding: 1rem;
+    border-radius: 8px;
+}
+.details-header {
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+}
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.6rem 1rem;
+    align-items: start;
+}
+.detail-item {
+    background: white;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+}
+.detail-item.full { grid-column: 1 / -1; }
+.detail-item .label {
+    font-size: 0.85rem;
+    color: #777;
+    margin-bottom: 0.35rem;
+}
+.detail-item .value {
+    font-weight: 600;
+    color: var(--text-color);
+}
+.nutrient-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.nutrient-list li {
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
+}
+
+/* Overall match indicator */
+.overall-match {
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.75rem;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(0,200,83,0.08), rgba(0,200,83,0.03));
+    color: var(--text-color);
+    font-weight: 600;
+}
+
 .details-section {
     margin-bottom: 2rem;
 }

@@ -134,44 +134,58 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
         document.getElementById('cropName').innerText = json.recommendation || 'No specific crop recommended';
         document.getElementById('explanation').innerText = json.explanation || 'No explanation available';
 
-        // Show optimal condition matches if provided by API
-        const oc = json.optimal_conditions || null;
-
-        // Soil: show Yes/No if oc provides boolean, otherwise show the raw soil value
-        if (oc && typeof oc.soil !== 'undefined') {
-            const soilMatchEl = document.getElementById('soilMatch');
-            soilMatchEl.innerText = (oc.soil === true) ? 'Yes' : (oc.soil === false ? 'No' : data.soil);
-        } else {
-            document.getElementById('soilMatch').innerText = data.soil;
-        }
-
-        // pH / temp / humidity: show value and whether it's OK (if oc boolean exists)
-        const setCheckText = (elId, value, okFlag) => {
-            const el = document.getElementById(elId);
-            if (typeof okFlag !== 'undefined' && okFlag !== null) {
-                el.innerText = `${value} ${okFlag === true ? '(OK)' : '(Not ideal)'}`;
-            } else {
-                el.innerText = `${value}`;
-            }
-        };
-
-        setCheckText('phMatch', data.ph, oc ? oc.ph : null);
-        setCheckText('tempMatch', `${data.temp}°C`, oc ? oc.temp : null);
-        setCheckText('humidityMatch', `${data.humidity}%`, oc ? oc.humidity : null);
-
-        // Optionally show overall match score (insert a small element above explanation)
-        if (oc && typeof oc.overall_match !== 'undefined' && oc.overall_match !== null) {
-            let overallEl = document.getElementById('overallMatch');
-            if (!overallEl) {
-                overallEl = document.createElement('div');
-                overallEl.id = 'overallMatch';
-                overallEl.className = 'overall-match';
+        // Render `details` object (if provided) in a readable UI block
+        const details = json.details || null;
+        try {
+            let detailsEl = document.getElementById('detailsPanel');
+            if (!detailsEl) {
+                detailsEl = document.createElement('div');
+                detailsEl.id = 'detailsPanel';
+                detailsEl.className = 'details-panel';
+                // insert below the explanation
                 const explanationEl = document.getElementById('explanation');
-                explanationEl.parentNode.insertBefore(overallEl, explanationEl);
+                explanationEl.parentNode.insertBefore(detailsEl, explanationEl.nextSibling);
             }
-            const pct = Math.round(oc.overall_match * 100);
-            overallEl.innerText = `Overall match: ${pct}%`;
+
+            if (details) {
+                // Build nutrient list if present
+                const nutrients = details.nutrient_requirements || details.nutrientRequirements || {};
+                let nutrientsHtml = '';
+                const nutrientKeys = Object.keys(nutrients || {});
+                if (nutrientKeys.length) {
+                    nutrientsHtml = '<ul class="nutrient-list">';
+                    nutrientKeys.forEach(k => {
+                        nutrientsHtml += `<li><strong>${k.replace(/_/g,' ')}</strong>: ${nutrients[k]}</li>`;
+                    });
+                    nutrientsHtml += '</ul>';
+                }
+
+                const soilType = details.optimal_soil_type || details.optimalSoilType || '—';
+                const pHRange = details.optimal_pH_range || details.optimal_pH_range || details.optimalPHRange || '—';
+                const rainReq = details.rainfall_requirement || details.rainfallRequirement || '—';
+                const tempRange = details.temperature_range || details.temperatureRange || '—';
+                const humidityRange = details.humidity_range || details.humidityRange || '—';
+
+                detailsEl.innerHTML = `
+                    <div class="details-header"><strong>Recommended Growing Conditions</strong></div>
+                    <div class="details-grid">
+                        <div class="detail-item"><span class="label">Soil</span><span class="value">${soilType}</span></div>
+                        <div class="detail-item"><span class="label">pH Range</span><span class="value">${pHRange}</span></div>
+                        <div class="detail-item"><span class="label">Temperature</span><span class="value">${tempRange}</span></div>
+                        <div class="detail-item"><span class="label">Humidity</span><span class="value">${humidityRange}</span></div>
+                        <div class="detail-item full"><span class="label">Rainfall</span><span class="value">${rainReq}</span></div>
+                        <div class="detail-item full nutrients"><span class="label">Nutrient requirements</span><span class="value">${nutrientsHtml}</span></div>
+                    </div>
+                `;
+            } else {
+                // remove/clear panel if no details
+                detailsEl.innerHTML = '';
+            }
+        } catch (e) {
+            console.warn('Failed to render details panel', e);
         }
+
+        // (Optimal conditions summary removed) 
 
         // Use growing_tips from API if present; otherwise fall back to client-side example tips
         const tipsContainer = document.getElementById('growingTips');
