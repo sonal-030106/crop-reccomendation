@@ -55,7 +55,7 @@ const VALIDATION_RULES = {
 // --------------------
 // History API (save recommendations)
 // --------------------
-const historyApiUrl = "https://w7pbs5jtkh.execute-api.us-east-1.amazonaws.com/dev/history"; // set your history endpoint
+const historyApiUrl = "https://emmnb4eed8.execute-api.us-east-1.amazonaws.com/dev/history"; // set your history endpoint
 
 // store last result so Save button can send it
 let lastResult = null;
