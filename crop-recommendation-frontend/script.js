@@ -53,6 +53,14 @@ const VALIDATION_RULES = {
 };
 
 // --------------------
+// History API (save recommendations)
+// --------------------
+const historyApiUrl = "https://emmnb4eed8.execute-api.us-east-1.amazonaws.com/dev/history"; // set your history endpoint
+
+// store last result so Save button can send it
+let lastResult = null;
+
+// --------------------
 // 4️⃣ Input validation
 // --------------------
 function validateInput(input, rules) {
@@ -114,6 +122,14 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
     try {
         const json = await getRecommendation(data);
         console.debug('API response JSON:', json);
+        // Save last result (for Save to History action)
+        lastResult = {
+            timestamp: new Date().toISOString(),
+            input: data,
+            result: json,
+            name: form.name ? form.name.value : undefined,
+            location: form.location ? form.location.value : undefined
+        };
 
         // expose raw JSON for troubleshooting in the UI (creates #apiResponse if not present)
         try {
@@ -285,3 +301,48 @@ document.addEventListener('keydown', (e) => {
         document.querySelector('button[type="submit"]').click();
     }
 });
+
+// --------------------
+// Save to History (called by Save button in UI)
+// --------------------
+async function saveToHistory() {
+    if (!lastResult) {
+        alert('No recommendation to save yet. Please get a recommendation first.');
+        return;
+    }
+
+    const btn = document.querySelector('.secondary-btn[onclick="saveToHistory()"]');
+    if (btn) btn.disabled = true;
+
+    try {
+        const payload = {
+            timestamp: lastResult.timestamp,
+            name: lastResult.name,
+            location: lastResult.location,
+            input: lastResult.input,
+            recommendation: lastResult.result.recommendation,
+            explanation: lastResult.result.explanation,
+            details: lastResult.result.details || {},
+            growing_tips: lastResult.result.growing_tips || lastResult.result.growingTips || []
+        };
+
+        const res = await fetch(historyApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            let body = await res.text();
+            try { body = JSON.parse(body); } catch (e) {}
+            throw new Error(`History API error: ${res.status} ${JSON.stringify(body)}`);
+        }
+
+        alert('Saved to history');
+    } catch (err) {
+        console.error('Save history failed', err);
+        alert('Failed to save history: ' + err.message);
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
