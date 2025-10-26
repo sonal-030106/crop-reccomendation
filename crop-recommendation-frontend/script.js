@@ -135,7 +135,25 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
         document.getElementById('explanation').innerText = json.explanation || 'No explanation available';
 
         // Render `details` object (if provided) in a readable UI block
-        const details = json.details || null;
+        // Be defensive: `details` may be an object, a JSON string, or nested differently.
+        let details = json.details || null;
+        try {
+            if (typeof details === 'string') {
+                // try to parse stringified JSON
+                try { details = JSON.parse(details); } catch (e) { console.debug('details is string but not JSON', e); }
+            }
+            // sometimes model returns details nested, try common fallbacks
+            if (!details && json.details === undefined && json.body) {
+                // API wrapper case: body may contain the object
+                try {
+                    const b = (typeof json.body === 'string') ? JSON.parse(json.body) : json.body;
+                    details = b.details || b.result || b.data || null;
+                } catch (e) { /* ignore */ }
+            }
+        } catch (e) {
+            console.warn('Error normalizing details', e);
+            details = details || null;
+        }
         try {
             let detailsEl = document.getElementById('detailsPanel');
             if (!detailsEl) {
@@ -149,7 +167,10 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
 
             if (details) {
                 // Build nutrient list if present
-                const nutrients = details.nutrient_requirements || details.nutrientRequirements || {};
+                let nutrients = details.nutrient_requirements || details.nutrientRequirements || details.nutrients || {};
+                if (typeof nutrients === 'string') {
+                    try { nutrients = JSON.parse(nutrients); } catch (e) { /* keep string */ }
+                }
                 let nutrientsHtml = '';
                 const nutrientKeys = Object.keys(nutrients || {});
                 if (nutrientKeys.length) {
@@ -160,11 +181,11 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
                     nutrientsHtml += '</ul>';
                 }
 
-                const soilType = details.optimal_soil_type || details.optimalSoilType || '—';
-                const pHRange = details.optimal_pH_range || details.optimal_pH_range || details.optimalPHRange || '—';
-                const rainReq = details.rainfall_requirement || details.rainfallRequirement || '—';
-                const tempRange = details.temperature_range || details.temperatureRange || '—';
-                const humidityRange = details.humidity_range || details.humidityRange || '—';
+                const soilType = details.optimal_soil_type || details.optimalSoilType || details.optimal_soil || '—';
+                const pHRange = details.optimal_pH_range || details.optimalPHRange || details.optimal_pH || '—';
+                const rainReq = details.rainfall_requirement || details.rainfallRequirement || details.rainfall || '—';
+                const tempRange = details.temperature_range || details.temperatureRange || details.temp_range || '—';
+                const humidityRange = details.humidity_range || details.humidityRange || details.humidity || '—';
 
                 detailsEl.innerHTML = `
                     <div class="details-header"><strong>Recommended Growing Conditions</strong></div>
