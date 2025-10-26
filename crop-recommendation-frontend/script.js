@@ -55,7 +55,7 @@ const VALIDATION_RULES = {
 // --------------------
 // History API (save recommendations)
 // --------------------
-const historyApiUrl = "https://emmnb4eed8.execute-api.us-east-1.amazonaws.com/dev/history"; // set your history endpoint
+const historyApiUrl = "https://w7pbs5jtkh.execute-api.us-east-1.amazonaws.com/dev/history"; // set your history endpoint
 
 // store last result so Save button can send it
 let lastResult = null;
@@ -332,13 +332,31 @@ async function saveToHistory() {
             body: JSON.stringify(payload)
         });
 
-        if (!res.ok) {
-            let body = await res.text();
-            try { body = JSON.parse(body); } catch (e) {}
-            throw new Error(`History API error: ${res.status} ${JSON.stringify(body)}`);
+        // Read response text and handle both direct JSON and API Gateway proxy wrapper
+        const text = await res.text();
+        let parsed = null;
+        try {
+            parsed = text ? JSON.parse(text) : {};
+        } catch (e) {
+            parsed = { __raw: text };
         }
 
-        alert('Saved to history');
+        // If API Gateway proxy wrapper, the useful payload is often in parsed.body
+        let bodyObj = parsed;
+        if (parsed && typeof parsed === 'object' && typeof parsed.body === 'string') {
+            try {
+                bodyObj = JSON.parse(parsed.body);
+            } catch (e) {
+                bodyObj = { message: parsed.body };
+            }
+        }
+
+        if (!res.ok) {
+            throw new Error(`History API error: ${res.status} ${JSON.stringify(bodyObj)}`);
+        }
+
+        const savedId = bodyObj.id || bodyObj.insertId || bodyObj.message || null;
+        alert('Saved to history' + (savedId ? ` (id: ${savedId})` : ''));
     } catch (err) {
         console.error('Save history failed', err);
         alert('Failed to save history: ' + err.message);
