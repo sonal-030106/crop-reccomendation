@@ -13,11 +13,9 @@ async function getRecommendation(data) {
         body: JSON.stringify(data)
     });
 
+    // return full parsed JSON so caller can read growing_tips and optimal_conditions
     const result = await response.json();
-    return {
-        recommendation: result.recommendation,
-        explanation: result.explanation
-    };
+    return result;
 }
 
 // --------------------
@@ -98,23 +96,60 @@ document.getElementById('cropForm').addEventListener('submit', async (e) => {
         // Update result section
         document.getElementById('cropName').innerText = json.recommendation || 'No specific crop recommended';
         document.getElementById('explanation').innerText = json.explanation || 'No explanation available';
-        
-        // Update condition matches
-        document.getElementById('soilMatch').innerText = data.soil;
-        document.getElementById('phMatch').innerText = data.ph;
-        document.getElementById('tempMatch').innerText = `${data.temp}°C`;
-        document.getElementById('humidityMatch').innerText = `${data.humidity}%`;
 
-        // Add growing tips (example tips - replace with actual API data if available)
+        // Show optimal condition matches if provided by API
+        const oc = json.optimal_conditions || null;
+
+        // Soil: show Yes/No if oc provides boolean, otherwise show the raw soil value
+        if (oc && typeof oc.soil !== 'undefined') {
+            const soilMatchEl = document.getElementById('soilMatch');
+            soilMatchEl.innerText = (oc.soil === true) ? 'Yes' : (oc.soil === false ? 'No' : data.soil);
+        } else {
+            document.getElementById('soilMatch').innerText = data.soil;
+        }
+
+        // pH / temp / humidity: show value and whether it's OK (if oc boolean exists)
+        const setCheckText = (elId, value, okFlag) => {
+            const el = document.getElementById(elId);
+            if (typeof okFlag !== 'undefined' && okFlag !== null) {
+                el.innerText = `${value} ${okFlag === true ? '(OK)' : '(Not ideal)'}`;
+            } else {
+                el.innerText = `${value}`;
+            }
+        };
+
+        setCheckText('phMatch', data.ph, oc ? oc.ph : null);
+        setCheckText('tempMatch', `${data.temp}°C`, oc ? oc.temp : null);
+        setCheckText('humidityMatch', `${data.humidity}%`, oc ? oc.humidity : null);
+
+        // Optionally show overall match score (insert a small element above explanation)
+        if (oc && typeof oc.overall_match !== 'undefined' && oc.overall_match !== null) {
+            let overallEl = document.getElementById('overallMatch');
+            if (!overallEl) {
+                overallEl = document.createElement('div');
+                overallEl.id = 'overallMatch';
+                overallEl.className = 'overall-match';
+                const explanationEl = document.getElementById('explanation');
+                explanationEl.parentNode.insertBefore(overallEl, explanationEl);
+            }
+            const pct = Math.round(oc.overall_match * 100);
+            overallEl.innerText = `Overall match: ${pct}%`;
+        }
+
+        // Use growing_tips from API if present; otherwise fall back to client-side example tips
         const tipsContainer = document.getElementById('growingTips');
         tipsContainer.innerHTML = '';
-        const tips = [
+
+        const apiTips = Array.isArray(json.growing_tips) ? json.growing_tips : (Array.isArray(json.growingTips) ? json.growingTips : []);
+        const fallbackTips = [
             `Optimal planting season for ${json.recommendation} in your area`,
             'Recommended irrigation schedule based on your rainfall',
             'Specific fertilizer recommendations for your soil type',
             'Pest management suggestions for your region'
         ];
-        tips.forEach(tip => {
+
+        const finalTips = apiTips.length ? apiTips : fallbackTips;
+        finalTips.forEach(tip => {
             const li = document.createElement('li');
             li.textContent = tip;
             tipsContainer.appendChild(li);
