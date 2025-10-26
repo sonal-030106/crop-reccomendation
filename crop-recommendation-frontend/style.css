@@ -431,31 +431,57 @@ input:focus {
 }
 
 .recommended-crop {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, #2d8a5f 0%, #3da070 50%, #4ab582 100%);
     color: white;
-    padding: 2rem;
+    padding: 3rem 2rem;
     text-align: center;
+    box-shadow: 0 8px 25px rgba(45, 138, 95, 0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+    position: relative;
+    overflow: hidden;
 }
 
 .crop-icon {
-    width: 100px;
-    height: 100px;
-    background: rgba(255, 255, 255, 0.2);
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.25);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), inset 0 0 15px rgba(255,255,255,0.3);
+    position: relative;
+    z-index: 1;
 }
 
 .crop-icon i {
-    font-size: 3rem;
+    font-size: 3.5rem;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .crop-name {
-    font-size: 2.5rem;
-    font-weight: bold;
+    font-size: 3.2rem;
+    font-weight: 900;
     margin-top: 1rem;
+    letter-spacing: 1px;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    position: relative;
+    z-index: 1;
+}
+
+.recommended-crop h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes shimmer {
+    0% { transform: translate(-100%, -100%) rotate(0deg); }
+    100% { transform: translate(100%, 100%) rotate(360deg); }
 }
 
 .recommendation-details {
